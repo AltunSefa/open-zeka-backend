@@ -1,6 +1,6 @@
 from flask import jsonify, request, abort, current_app as app
 
-from app.schemas.schemas import CreateAlbumSchema, CreateCommentSchema, CreatePhotoSchema, CreatePostSchema, CreateUserSchema
+from app.schemas.schemas import CreateAlbumSchema, CreateCommentSchema, CreatePhotoSchema, CreatePostSchema, CreateTodoSchema, CreateUserSchema
 from .models import db, User, Post, Album, Todo, Comment, Photo
 from flask_limiter import Limiter
 
@@ -67,7 +67,7 @@ def create_post():
         post_schema = CreatePostSchema()  
         data = post_schema.load(data)
         post = Post(
-            user_id=data['userId'],
+            user_id=data['user_id'],
             title=data['title'],
             body=data['body']
         )
@@ -99,7 +99,7 @@ def create_album():
         album_schema = CreateAlbumSchema()  
         data = album_schema.load(data)
         album = Album(
-            user_id=data['userId'],
+            user_id=data['user_id'],
             title=data['title']
         )
         db.session.add(album)
@@ -121,6 +121,24 @@ def get_album(album_id):
 def get_todos():
     todos = Todo.query.all()
     return jsonify([todo.to_dict() for todo in todos])
+
+@app.route('/todo', methods=['POST'])
+@limiter.limit("5 per minute")
+def create_todo():
+    data = request.json
+    try:
+        todo_schema = CreateTodoSchema()  
+        data = todo_schema.load(data)
+        todo = Todo(
+            user_id=data['user_id'],
+            title=data['title'],
+            completed=data['completed']
+        )
+        db.session.add(todo)
+        db.session.commit()
+        return jsonify(todo.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/todos/<int:todo_id>', methods=['GET'])
 @limiter.limit("5 per minute")
@@ -144,7 +162,7 @@ def create_comment():
         comment_schema = CreateCommentSchema() 
         data = comment_schema.load(data)
         comment = Comment(
-            post_id=data['postId'],
+            post_id=data['post_id'],
             name=data['name'],
             email=data['email'],
             body=data['body']
@@ -177,10 +195,10 @@ def create_photo():
         photo_schema = CreatePhotoSchema()  
         data = photo_schema.load(data)
         photo = Photo(
-            album_id=data['albumId'],
+            album_id=data['album_id'],
             title=data['title'],
             url=data['url'],
-            thumbnail_url=data['thumbnailUrl']
+            thumbnail_url=data['thumbnail_url']
         )
         db.session.add(photo)
         db.session.commit()
