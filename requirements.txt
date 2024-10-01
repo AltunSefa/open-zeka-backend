@@ -1,3 +1,4 @@
 Flask==3.0.3
 Flask-SQLAlchemy==3.1.1
 Marshmallow==3.15.0
+Flask-Limiter==2.0.1
