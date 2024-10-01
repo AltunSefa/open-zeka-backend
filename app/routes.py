@@ -1,4 +1,6 @@
 from flask import jsonify, request, abort, current_app as app
+
+from app.schemas.schemas import CreateAlbumSchema, CreateCommentSchema, CreatePhotoSchema, CreatePostSchema, CreateUserSchema
 from .models import db, User, Post, Album, Todo, Comment, Photo
 
 @app.route('/users', methods=['GET'])
@@ -9,19 +11,25 @@ def get_users():
 @app.route('/user', methods=['POST'])
 def create_user():
     data = request.json
-    print(data)
-    user = User(
-        name=data['name'],
-        username=data['username'],
-        email=data['email'],
-        address=data['address'],
-        phone=data['phone'],    
-        website=data['website'],
-        company=data['company'],
-    )
-    db.session.add(user)
-    db.session.commit()
-    return jsonify(user.to_dict()), 201
+    try:
+        
+        user_schema = CreateUserSchema()
+        data = user_schema.load(data)
+        user = User(
+            name=data['name'],
+            username=data['username'],
+            email=data['email'],
+            address=data['address'],
+            phone=data['phone'],
+            website=data['website'],
+            company=data['company'],
+        )
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(user.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 
 @app.route('/users/<int:user_id>', methods=['GET'])
@@ -41,14 +49,19 @@ def get_posts():
 @app.route('/post', methods=['POST'])
 def create_post():
     data = request.json
-    post = Post(
-        user_id=data['userId'],
-        title=data['title'],
-        body=data['body']
-    )
-    db.session.add(post)
-    db.session.commit()
-    return jsonify(post.to_dict()), 201
+    try:
+        post_schema = CreatePostSchema()  # Assuming you have a schema for Post
+        data = post_schema.load(data)
+        post = Post(
+            user_id=data['userId'],
+            title=data['title'],
+            body=data['body']
+        )
+        db.session.add(post)
+        db.session.commit()
+        return jsonify(post.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/posts/<int:post_id>', methods=['GET'])
 def get_post(post_id):
@@ -65,13 +78,18 @@ def get_albums():
 @app.route('/album', methods=['POST'])
 def create_album():
     data = request.json
-    album = Album(
-        user_id=data['userId'],
-        title=data['title']
-    )
-    db.session.add(album)
-    db.session.commit()
-    return jsonify(album.to_dict()), 201
+    try:
+        album_schema = CreateAlbumSchema()  
+        data = album_schema.load(data)
+        album = Album(
+            user_id=data['userId'],
+            title=data['title']
+        )
+        db.session.add(album)
+        db.session.commit()
+        return jsonify(album.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/albums/<int:album_id>', methods=['GET'])
 def get_album(album_id):
@@ -100,15 +118,20 @@ def get_comments():
 @app.route('/comment', methods=['POST'])
 def create_comment():
     data = request.json
-    comment = Comment(
-        post_id=data['postId'],
-        name=data['name'],
-        email=data['email'],
-        body=data['body']
-    )
-    db.session.add(comment)
-    db.session.commit()
-    return jsonify(comment.to_dict()), 201
+    try:
+        comment_schema = CreateCommentSchema() 
+        data = comment_schema.load(data)
+        comment = Comment(
+            post_id=data['postId'],
+            name=data['name'],
+            email=data['email'],
+            body=data['body']
+        )
+        db.session.add(comment)
+        db.session.commit()
+        return jsonify(comment.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/comments/<int:comment_id>', methods=['GET'])
 def get_comment(comment_id):
@@ -125,15 +148,20 @@ def get_photos():
 @app.route('/photo', methods=['POST'])
 def create_photo():
     data = request.json
-    photo = Photo(
-        album_id=data['albumId'],
-        title=data['title'],
-        url=data['url'],
-        thumbnail_url=data['thumbnailUrl']
-    )
-    db.session.add(photo)
-    db.session.commit()
-    return jsonify(photo.to_dict()), 201
+    try:
+        photo_schema = CreatePhotoSchema()  
+        data = photo_schema.load(data)
+        photo = Photo(
+            album_id=data['albumId'],
+            title=data['title'],
+            url=data['url'],
+            thumbnail_url=data['thumbnailUrl']
+        )
+        db.session.add(photo)
+        db.session.commit()
+        return jsonify(photo.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 @app.route('/photos/<int:photo_id>', methods=['GET'])
 def get_photo(photo_id):
